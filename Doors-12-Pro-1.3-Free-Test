@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doors 12 Pro 1.3 - Free Test</title>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent-color: #008b8b;
+            --highlight-color: #ffcc00;
+            --glass-bg: rgba(15, 15, 15, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --text-color: #ffffff;
+            --taskbar-bg: rgba(0, 0, 0, 0.85);
+            --menu-bg: rgba(10, 10, 10, 0.95);
+            --ui-icon-fill: #ffffff;
+            --window-blur: 25px;
+        }
+
+:root {
+    /* Windows 7 Aero Style */
+        .win7-theme {
+            --glass-bg: rgba(173, 216, 230, 0.4); /* Hellblau-Transparent */
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --text-color: #000000;
+            --taskbar-bg: linear-gradient(to bottom, rgba(135, 206, 250, 0.6) 0%, rgba(25, 25, 112, 0.8) 100%);
+            --menu-bg: rgba(240, 248, 255, 0.95);
+            --ui-icon-fill: #1a1a1a;
+            --window-blur: 15px;
+            --accent-color: #3b82f6;
+        }
+        
+        /* Typischer Win7 Glanzeffekt für Fenster */
+        .win7-theme .window-header {
+            background: linear-gradient(to bottom, rgba(255,255,255,0.5) 0%, rgba(0,0,0,0.1) 100%) !important;
+            color: black !important;
+            border-bottom: 1px solid rgba(255,255,255,0.3);
+            font-weight: bold;
+        }
+
+        .win7-theme .btn-ui {
+            background: linear-gradient(to bottom, #f0f0f0 0%, #bcbcbc 100%);
+            border: 1px solid #707070;
+            color: black;
+            border-radius: 3px; /* Win7 hatte eckigere Buttons */
+            box-shadow: inset 0 1px 0 white;
+        }
+        
+        .win7-theme .task-btn {
+            border-radius: 4px;
+            background: rgba(255,255,255,0.2);
+            margin: 0 2px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .glass-theme {
+            --glass-bg: rgba(255, 255, 255, 0.25);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --text-color: #000000;
+            --taskbar-bg: rgba(255, 255, 255, 0.15);
+            --menu-bg: rgba(255, 255, 255, 0.3);
+            --ui-icon-fill: #000000;
+            --window-blur: 45px;
+            --accent-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        .glass-theme .btn-ui { color: #000000 !important; background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(0, 0, 0, 0.1); }
+        .glass-theme .window-header { color: #000000; background: rgba(255, 255, 255, 0.2); }
+        .glass-theme .window { box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2); }
+
+        body, html {
+            margin: 0; padding: 0; height: 100%; font-family: 'Open Sans', sans-serif; overflow: hidden;
+            background: url('https://i.postimg.cc/yVHWhzsP/7724c5fb-01.png') no-repeat center center fixed;
+            background-size: cover; transition: background 0.5s ease;
+        }
+
+        #watermark {
+            position: fixed; top: 20px; right: 20px; text-align: right; color: rgba(255, 255, 255, 0.8);
+            pointer-events: none; z-index: 5; font-size: 12px; line-height: 1.4; text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        }
+
+        #overlay-screen {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10000;
+            transition: opacity 2.5s ease, visibility 2.5s;
+        }
+
+        #overlay-logo { width: 100px; height: 100px; fill: var(--accent-color); animation: bootPulse 1s infinite ease-in-out; }
+}
+
+        @keyframes bootPulse { 0%, 100% { transform: scale(1); opacity: 1; filter: drop-shadow(0 0 0px var(--accent-color)); } 50% { transform: scale(1.1); opacity: 0.8; filter: drop-shadow(0 0 15px var(--accent-color)); } }
+        .screen-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+        .shutdown-text { color: white; margin-top: 20px; font-weight: 400; letter-spacing: 1px; }
+
+        #desktop { width: 100%; height: calc(100vh - 60px); position: relative; overflow: hidden; }
+
+        .app-icon { 
+            position: absolute; width: 90px; height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: white !important; cursor: grab; border-radius: 10px; transition: background 0.2s, transform 0.1s; user-select: none; text-shadow: 0 2px 5px rgba(0,0,0,0.7);
+        }
+        .app-icon:hover { background: rgba(255,255,255,0.15); }
+        .app-icon:active { cursor: grabbing; transform: scale(0.95); }
+        .app-icon svg { width: 48px; height: 48px; fill: white !important; margin-bottom: 5px; pointer-events: none; }
+        .app-icon span { font-size: 11px; font-weight: 600; text-align: center; pointer-events: none; }
+
+        .window { 
+            position: absolute; width: 600px; height: 450px; background: var(--glass-bg); backdrop-filter: blur(var(--window-blur));
+            border: 1px solid var(--glass-border); border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            display: none; flex-direction: column; z-index: 10; resize: both; min-width: 350px; min-height: 250px; overflow: hidden;
+            animation: openWin 0.3s cubic-bezier(0.17, 0.89, 0.32, 1.27);
+        }
+        .window-header { padding: 12px 18px; display: flex; justify-content: space-between; align-items: center; cursor: move; color: var(--text-color); background: rgba(0,0,0,0.15); }
+        .win-controls { display: flex; gap: 8px; }
+        .win-controls span { width: 13px; height: 13px; border-radius: 50%; cursor: pointer; }
+        .ctrl-min { background: #ffbd2e; } .ctrl-max { background: #28c940; } .ctrl-close { background: #ff5f56; }
+        .window-content { padding: 20px; color: var(--text-color); flex-grow: 1; overflow: auto; position: relative; }
+
+        #taskbar { height: 60px; background: var(--taskbar-bg); backdrop-filter: blur(30px); display: flex; align-items: center; position: fixed; bottom: 0; width: 100%; z-index: 2000; padding: 0 15px; border-top: 1px solid var(--glass-border); box-sizing: border-box; }
+        #active-icons { display: flex; flex-grow: 1; }
+        .task-btn { height: 45px; min-width: 45px; display: flex; align-items: center; justify-content: center; margin: 0 6px; border-radius: 12px; cursor: pointer; transition: 0.2s; }
+        .task-btn svg { width: 26px; height: 26px; fill: var(--ui-icon-fill); }
+        .task-btn:hover { background: rgba(128,128,128,0.2); }
+        .task-btn.active { border-bottom: 3px solid var(--highlight-color); }
+
+        #start-menu { 
+            position: absolute; bottom: 75px; left: 15px; width: 450px; background: var(--menu-bg);
+            backdrop-filter: blur(35px); border-radius: 25px; display: none; color: var(--text-color); z-index: 1001;
+            border: 1px solid var(--glass-border); overflow: hidden; grid-template-columns: 180px 1fr;
+        }
+        #menu-sidebar { background: rgba(0, 0, 0, 0.2); padding: 25px 15px; display: flex; flex-direction: column; border-right: 1px solid var(--glass-border); }
+        #menu-apps { padding: 20px; max-height: 400px; overflow-y: auto; }
+        
+        .menu-app-item { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 12px; cursor: grab; transition: 0.2s; color: var(--text-color); user-select: none; }
+        .menu-app-item:hover { background: rgba(128,128,128,0.2); }
+        .menu-app-item svg { width: 28px; height: 28px; fill: var(--ui-icon-fill); pointer-events: none; }
+        .menu-app-item span { font-size: 14px; font-weight: 600; pointer-events: none; }
+
+        .btn-ui { background: var(--accent-color); border: none; color: white; padding: 10px 18px; border-radius: 10px; cursor: pointer; font-weight: 600; margin: 5px 0; transition: 0.2s; }
+        .btn-ui:hover { opacity: 0.9; }
+        .btn-shutdown { background: #ff5f56 !important; color: white !important; }
+        
+        select.ui-select { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid var(--glass-border); background: rgba(128,128,128,0.1); color: var(--text-color); font-family: inherit; margin-top: 5px; }
+
+        #taskbar-clock { padding: 0 15px; color: var(--text-color); font-size: 14px; font-weight: 600; cursor: pointer; border-radius: 10px; height: 45px; display: flex; align-items: center; transition: 0.2s; }
+        #taskbar-clock:hover { background: rgba(255,255,255,0.1); }
+
+        /* Kalender Styles */
+        .calendar-table { width: 100%; border-collapse: collapse; text-align: center; }
+        .calendar-table th { padding: 10px; font-size: 0.8em; opacity: 0.6; }
+        .calendar-table td { padding: 10px; border-radius: 8px; cursor: default; }
+        .calendar-table td.today { background: var(--accent-color); color: white; font-weight: bold; }
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+
+        .profile-pic { width: 60px; height: 60px; background: var(--accent-color); border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; overflow: hidden; border: 2px solid transparent; transition: transform 0.2s; }
+        .profile-pic:hover { transform: scale(1.05); border-color: var(--highlight-color); }
+        .profile-pic img { width: 100%; height: 100%; object-fit: cover; }
+
+        .avatar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 15px 0; }
+        .avatar-option { width: 50px; height: 50px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; object-fit: cover; }
+        .avatar-option:hover { border-color: var(--accent-color); }
+
+        @keyframes openWin { from { transform: scale(0.5); opacity: 0.5; } to { transform: scale(1); opacity: 1; } }
+    /* Vollbild-Logik */
+.window.fullscreen {
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: calc(100vh - 60px) !important;
+    border-radius: 0;
+    resize: none; /* Verhindert Größenänderung im Vollbild */
+}
+.gw-nav-btn {
+    background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border);
+    color: var(--text-color); border-radius: 8px; padding: 5px 10px;
+    cursor: pointer; font-size: 13px; transition: 0.2s;
+}
+.gw-nav-btn:hover { background: rgba(255,255,255,0.2); }
+
+.gw-tile {
+    background: rgba(255,255,255,0.08); border: 1px solid var(--glass-border);
+    border-radius: 14px; padding: 18px 10px; text-align: center;
+    cursor: pointer; transition: 0.2s; font-size: 13px; font-weight: 600;
+}
+.gw-tile:hover { background: rgba(255,255,255,0.18); transform: scale(1.04); }
+
+.gw-bm-btn {
+    background: rgba(255,255,255,0.08); border: 1px solid var(--glass-border);
+    color: var(--text-color); border-radius: 6px; padding: 4px 10px;
+    cursor: pointer; font-size: 12px; transition: 0.2s;
+}
+.gw-bm-btn:hover { background: rgba(255,255,255,0.18); }
+
+.gw-tab {
+    background: rgba(255,255,255,0.08); border: 1px solid var(--glass-border);
+    border-bottom: none; color: var(--text-color); border-radius: 8px 8px 0 0;
+    padding: 5px 14px; cursor: pointer; font-size: 12px; white-space: nowrap;
+    display: flex; align-items: center; gap: 6px;
+}
+.gw-tab.active { background: rgba(255,255,255,0.2); }
+.gw-tab-close { opacity: 0.6; }
+.gw-tab-close:hover { opacity: 1; }
+#context-menu {
+    position: fixed; z-index: 9999;
+    background: var(--menu-bg); backdrop-filter: blur(35px);
+    border: 1px solid var(--glass-border); border-radius: 14px;
+    padding: 8px; min-width: 200px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    display: none;
+    animation: openWin 0.15s cubic-bezier(0.17, 0.89, 0.32, 1.27);
+}
+.ctx-item {
+    padding: 9px 14px; border-radius: 8px; cursor: pointer;
+    color: var(--text-color); font-size: 13px; font-weight: 600;
+    transition: 0.15s; display: flex; align-items: center; gap: 10px;
+}
+.ctx-item:hover { background: rgba(128,128,128,0.2); }
+.ctx-divider { border: none; border-top: 1px solid var(--glass-border); margin: 5px 0; }
+#ctx-wallpaper-sub {
+    position: fixed; z-index: 10000;
+    background: var(--menu-bg); backdrop-filter: blur(35px);
+    border: 1px solid var(--glass-border); border-radius: 14px;
+    padding: 8px; min-width: 200px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    display: none;
+    animation: openWin 0.15s cubic-bezier(0.17, 0.89, 0.32, 1.27);
+}
+.ctx-item-arrow::after { content: ' ›'; float: right; opacity: 0.6; }
+@keyframes spin360 { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes bigBounce { 0% { transform: scale(1); } 50% { transform: scale(2.5); } 100% { transform: scale(1); } }
+@keyframes wiggle { 0%,100% { transform: rotate(0deg); } 20% { transform: rotate(-10deg); } 40% { transform: rotate(10deg); } 60% { transform: rotate(-8deg); } 80% { transform: rotate(8deg); } }
+@keyframes konfettiFall {
+    0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(280px) rotate(720deg); opacity: 0; }
+}
+#lock-screen {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.85); backdrop-filter: blur(20px);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 99999; gap: 16px;
+}
+#lock-screen img { width: 72px; height: 72px; object-fit: contain; margin-bottom: 8px; }
+#lock-screen h2 { color: white; margin: 0; }
+#lock-screen input {
+    padding: 12px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.1); color: white; font-size: 15px;
+    font-family: inherit; text-align: center; width: 220px; outline: none;
+}
+#lock-screen input::placeholder { color: rgba(255,255,255,0.4); }
+#lock-error { color: #ff5f56; font-size: 13px; min-height: 18px; }
+<style id="explorer-css">
+/* Explorer Fenster */
+#win-explorer { width: 700px; height: 480px; }
+ 
+#exp-toolbar {
+    display: flex; align-items: center; gap: 6px;
+    padding: 8px 12px; background: rgba(0,0,0,0.2);
+    border-bottom: 1px solid var(--glass-border);
+}
+#exp-path {
+    flex: 1; padding: 5px 12px; border-radius: 8px;
+    border: 1px solid var(--glass-border);
+    background: rgba(255,255,255,0.08);
+    color: var(--text-color); font-family: inherit; font-size: 12px;
+}
+#exp-sidebar {
+    width: 140px; min-width: 140px; background: rgba(0,0,0,0.15);
+    border-right: 1px solid var(--glass-border);
+    padding: 10px 0; overflow-y: auto;
+}
+.exp-sidebar-item {
+    padding: 7px 14px; cursor: pointer; font-size: 12px;
+    color: var(--text-color); transition: 0.15s;
+    display: flex; align-items: center; gap: 8px;
+}
+.exp-sidebar-item:hover { background: rgba(255,255,255,0.1); }
+.exp-sidebar-item.active { background: rgba(255,255,255,0.15); font-weight: 600; }
+ 
+#exp-main {
+    flex: 1; display: flex; flex-direction: column; overflow: hidden;
+}
+#exp-files {
+    flex: 1; padding: 12px; overflow-y: auto;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 8px; align-content: start;
+}
+.exp-item {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 10px 6px; border-radius: 10px; cursor: pointer;
+    transition: 0.15s; user-select: none; position: relative;
+    color: var(--text-color); text-align: center;
+}
+.exp-item:hover { background: rgba(255,255,255,0.12); }
+.exp-item.selected { background: rgba(255,255,255,0.2); outline: 2px solid var(--accent-color); }
+.exp-item-icon { font-size: 32px; margin-bottom: 4px; pointer-events: none; }
+.exp-item-name {
+    font-size: 11px; word-break: break-word; max-width: 80px;
+    line-height: 1.3; pointer-events: none;
+}
+#exp-statusbar {
+    padding: 4px 14px; font-size: 11px; opacity: 0.5;
+    border-top: 1px solid var(--glass-border);
+}
+ 
+/* Kontextmenü Explorer */
+#exp-ctx {
+    position: fixed; z-index: 99998;
+    background: var(--menu-bg); backdrop-filter: blur(35px);
+    border: 1px solid var(--glass-border); border-radius: 12px;
+    padding: 6px; min-width: 180px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5); display: none;
+}
+.exp-ctx-item {
+    padding: 8px 12px; border-radius: 7px; cursor: pointer;
+    color: var(--text-color); font-size: 12px; font-weight: 600;
+    transition: 0.15s; display: flex; align-items: center; gap: 8px;
+}
+.exp-ctx-item:hover { background: rgba(128,128,128,0.2); }
+.exp-ctx-item.danger { color: #ff5f56; }
+.exp-ctx-divider { border: none; border-top: 1px solid var(--glass-border); margin: 4px 0; }
+ 
+/* Dialog */
+#exp-dialog-overlay {
+    position: fixed; top:0; left:0; width:100vw; height:100vh;
+    background: rgba(0,0,0,0.5); z-index: 99999; display:none;
+    align-items: center; justify-content: center;
+}
+#exp-dialog {
+    background: var(--menu-bg); backdrop-filter: blur(35px);
+    border: 1px solid var(--glass-border); border-radius: 16px;
+    padding: 24px; min-width: 320px; color: var(--text-color);
+}
+#exp-dialog h3 { margin: 0 0 14px; }
+#exp-dialog input, #exp-dialog select, #exp-dialog textarea {
+    width: 100%; padding: 8px 12px; border-radius: 8px;
+    border: 1px solid var(--glass-border);
+    background: rgba(255,255,255,0.1); color: var(--text-color);
+    font-family: inherit; font-size: 13px; box-sizing: border-box;
+    margin-bottom: 10px;
+}
+#exp-dialog textarea { height: 100px; resize: vertical; }
+.exp-dialog-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px; }
+</style>
+</style>
+</head>
+<body id="os-body">
+<div id="lock-screen" style="display:none;">
+<svg id="about-logo" viewBox="0 0 24 24" style="width:64px; height:64px; fill:var(--accent-color);">
+    <path d="M13,3H7C5.89,3 5,3.89 5,5V19C5,20.11 5.89,21 7,21H13V3M13,11A1,1 0 0,1 12,12A1,1 0 0,1 11,11A1,1 0 0,1 12,10A1,1 0 0,1 13,11M19,3H15V21H19C20.11,21 21,20.11 21,19V5C21,3.89 20.11,3 19,3Z"/>
+</svg>
+    <h2>Doors 12</h2>
+    <div style="color:rgba(255,255,255,0.5); font-size:13px;">Passwort eingeben</div>
+    <input type="password" id="lock-input" placeholder="••••••••" 
+        onkeydown="if(event.key==='Enter') checkPassword()">
+    <button class="btn-ui" onclick="checkPassword()">Entsperren</button>
+    <div id="lock-error"></div>
+</div>
+<div id="watermark">
+    <b>Doors 12 Pro 1.3 - Free Test</b><br>
+    kostenlose Demo-Version.
+</div>
+
+<div id="overlay-screen">
+    <svg id="overlay-logo" viewBox="0 0 24 24">
+        <path d="M13,3H7C5.89,3 5,3.89 5,5V19C5,20.11 5.89,21 7,21H13V3M13,11A1,1 0 0,1 12,12A1,1 0 0,1 11,11A1,1 0 0,1 12,10A1,1 0 0,1 13,11M19,3H15V21H19C20.11,21 21,20.11 21,19V5C21,3.89 20.11,3 19,3Z"/>
+    </svg>
+    <div class="loader-ring" id="overlay-loader"></div>
+    <div id="shutdown-msg" class="shutdown-text" style="display:none;">Ihr PC wird heruntergefahren.</div>
+</div>
+
+<div id="desktop" onclick="hidePopups()"></div>
+<div id="context-menu">
+    <div class="ctx-item" onclick="openWin('win-settings'); hideCtx()">Einstellungen</div>
+    <hr class="ctx-divider">
+<div class="ctx-item ctx-item-arrow" id="ctx-wallpaper-btn">Hintergrund ändern</div>
+    <div class="ctx-item" onclick="hideCtx(); location.reload()">Neu laden</div>
+    <hr class="ctx-divider">
+    <div class="ctx-item" onclick="shutdownOS(); hideCtx()">Herunterfahren</div>
+</div>
+<div id="ctx-wallpaper-sub">
+    <div class="ctx-item" onclick="setColor('standard'); hideCtx()">Standard</div>
+    <div class="ctx-item" onclick="setColor('gruen'); hideCtx()">Grün</div>
+    <div class="ctx-item" onclick="setColor('blau'); hideCtx()">Blau</div>
+    <div class="ctx-item" onclick="setColor('rot'); hideCtx()">Rot</div>
+    <div class="ctx-item" onclick="setColor('lila'); hideCtx()">Lila</div>
+    <div class="ctx-item" onclick="setColor('orange'); hideCtx()">Orange</div>
+</div>
+<div id="win-browser" class="window" style="width:750px; height:520px;">
+    <div class="window-header">
+        <span>Gurkweb</span>
+        <div class="win-controls">
+            <span class="ctrl-min" onclick="minimizeWin('win-browser')"></span>
+            <span class="ctrl-max" onclick="toggleFS('win-browser')"></span>
+            <span class="ctrl-close" onclick="closeWin('win-browser')"></span>
+        </div>
+    </div>
+
+    <!-- Lesezeichen-Leiste -->
+    <div id="gw-bookmarks" style="display:flex; gap:6px; padding:6px 12px; background:rgba(0,0,0,0.2); border-bottom:1px solid var(--glass-border); flex-wrap:wrap;">
+<button class="gw-bm-btn" onclick="gwNavigate('https://gurkenschau.eu')"><img src="https://testing.gurkenschau.eu/wp-content/uploads/2026/02/cropped-Logo-Tuerkis.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle;"> GurkenSchau</button>
+        <!-- weitere Lesezeichen einfach hier ergänzen -->
+    </div>
+
+    <!-- Tabs -->
+    <div id="gw-tabbar" style="display:flex; gap:4px; padding:6px 12px 0; background:rgba(0,0,0,0.15); overflow-x:auto;">
+        <!-- Tabs werden per JS eingefügt -->
+        <button onclick="gwNewTab()" style="background:rgba(255,255,255,0.1); border:none; color:var(--text-color); border-radius:8px 8px 0 0; padding:5px 12px; cursor:pointer; font-size:18px;">+</button>
+    </div>
+
+    <!-- Adressleiste -->
+    <div style="display:flex; align-items:center; gap:6px; padding:8px 12px; background:rgba(0,0,0,0.15); border-bottom:1px solid var(--glass-border);">
+        <button class="gw-nav-btn" onclick="gwBack()">&#8592;</button>
+        <button class="gw-nav-btn" onclick="gwForward()">&#8594;</button>
+        <button class="gw-nav-btn" onclick="gwHome()">⌂</button>
+        <input id="gw-urlbar" type="text" placeholder="Gurkistan-Adresse eingeben..." 
+            style="flex:1; padding:6px 12px; border-radius:8px; border:1px solid var(--glass-border); background:rgba(255,255,255,0.1); color:var(--text-color); font-family:inherit; font-size:13px;"
+            onkeydown="if(event.key==='Enter') gwNavigate(this.value)">
+        <button class="gw-nav-btn" onclick="gwNavigate(document.getElementById('gw-urlbar').value)">&#8594; Los</button>
+    </div>
+
+    <!-- Iframe / Startseite -->
+    <div id="gw-content" style="flex:1; position:relative; overflow:hidden;">
+        <!-- Startseite -->
+        <div id="gw-homepage" style="width:100%; height:100%; overflow-y:auto; padding:20px; box-sizing:border-box; color:var(--text-color);">
+            <h2 style="margin:0 0 5px;">Gurkweb</h2>
+            <p style="opacity:0.6; margin:0 0 20px; font-size:13px;">Aktuell kann nur die Website der GurkenSchau aufgerufen werden. Wir bitten um Verständnis und kümmern uns um eine Fehlerbehebung!</p>
+            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(140px,1fr)); gap:14px;">
+                <div class="gw-tile" onclick="gwNavigate('https://gurkenschau.eu')">
+<img src="https://testing.gurkenschau.eu/wp-content/uploads/2026/02/cropped-Logo-Tuerkis.png" style="width:40px;height:40px;object-fit:contain;">
+                    <div>GurkenSchau</div>
+                </div>
+                <!-- weitere Kacheln einfach kopieren -->
+            </div>
+        </div>
+<iframe id="gw-frame" style="display:none; width:100%; height:100%; border:none; background:#fff;"></iframe>
+    </div>
+</div>
+<div id="win-explorer" class="window">
+    <div class="window-header">
+        <span>Eigene dateien</span>
+        <div class="win-controls">
+            <span class="ctrl-min" onclick="minimizeWin('win-explorer')"></span>
+            <span class="ctrl-max" onclick="toggleFS('win-explorer')"></span>
+            <span class="ctrl-close" onclick="closeWin('win-explorer')"></span>
+        </div>
+    </div>
+    <!-- Toolbar -->
+    <div id="exp-toolbar">
+        <button class="gw-nav-btn" onclick="expBack()">←</button>
+        <button class="gw-nav-btn" onclick="expUp()">↑</button>
+        <input id="exp-path" readonly>
+        <button class="gw-nav-btn" onclick="expRefresh()">↻</button>
+    </div>
+    <!-- Body -->
+    <div style="display:flex; flex:1; overflow:hidden; min-height:0;">
+        <!-- Sidebar -->
+        <div id="exp-sidebar">
+            <div style="padding:6px 14px; font-size:10px; opacity:0.4; font-weight:700; letter-spacing:1px;">ORTE</div>
+            <div class="exp-sidebar-item" onclick="expNavigate('root')">Startseite</div>
+            <div class="exp-sidebar-item" onclick="expNavigate('Dokumente')">Dokumente</div>
+            <div class="exp-sidebar-item" onclick="expNavigate('Bilder')">Bilder</div>
+            <div class="exp-sidebar-item" onclick="expNavigate('Verknüpfungen')">Verknüpfungen</div>
+        </div>
+        <!-- Hauptbereich -->
+        <div id="exp-main">
+            <div id="exp-files" oncontextmenu="expBgCtx(event)" onclick="expDeselect()"></div>
+            <div id="exp-statusbar">0 Elemente</div>
+        </div>
+    </div>
+</div>
+ 
+<!-- Kontextmenü -->
+<div id="exp-ctx">
+    <div id="exp-ctx-content"></div>
+</div>
+ 
+<!-- Dialog -->
+<div id="exp-dialog-overlay">
+    <div id="exp-dialog">
+        <h3 id="exp-dialog-title"></h3>
+        <div id="exp-dialog-body"></div>
+        <div class="exp-dialog-btns">
+            <button class="btn-ui" style="background:rgba(128,128,128,0.3);" onclick="expDialogClose()">Abbrechen</button>
+            <button class="btn-ui" id="exp-dialog-ok" onclick="expDialogOk()">OK</button>
+        </div>
+    </div>
+</div>
+<div id="win-office" class="window"><div class="window-header"><span>Gurk-Office</span><div class="win-controls"><span class="ctrl-min" onclick="minimizeWin('win-office')"></span><span class="ctrl-max" onclick="toggleFS('win-office')"></span><span class="ctrl-close" onclick="closeWin('win-office')"></span></div></div><div class="window-content"><textarea style="width:100%; height:80%; border:none; outline:none; background:rgba(128,128,128,0.1); color:inherit; border-radius:10px; padding:10px; font-family:inherit;"></textarea></div></div>
+
+<div id="win-settings" class="window"><div class="window-header"><span>Optionen</span><div class="win-controls"><span class="ctrl-min" onclick="minimizeWin('win-settings')"></span><span class="ctrl-max" onclick="toggleFS('win-settings')"></span><span class="ctrl-close" onclick="closeWin('win-settings')"></span></div></div><div class="window-content">
+    <h4>Profil anpassen</h4>
+    <div id="settings-profile-preview" class="profile-pic" onclick="openWin('win-profile')">GB</div>
+    <button class="btn-ui" onclick="openWin('win-profile')">Profilbild ändern</button>
+    <hr style="border:0; border-top:1px solid var(--glass-border); margin:20px 0;">
+    <h4>Thema auswählen</h4>
+    <button class="btn-ui" onclick="setTheme('dark')">Dunkel</button>
+    <button class="btn-ui" onclick="setTheme('glass')">Hell</button>
+    <button class="btn-ui" onclick="setTheme('win7')">Aero</button>
+<hr style="border:0; border-top:1px solid var(--glass-border); margin:20px 0;">
+<h4>Hintergrundbild auswählen</h4>
+<button class="btn-ui" onclick="setColor('standard')">Standard</button>
+<button class="btn-ui" onclick="setColor('gruen')">Grün</button>
+<button class="btn-ui" onclick="setColor('blau')">Blau</button>
+<button class="btn-ui" onclick="setColor('rot')">Rot</button>
+<button class="btn-ui" onclick="setColor('lila')">Lila</button>
+<button class="btn-ui" onclick="setColor('orange')">Orange</button>
+<hr style="border:0; border-top:1px solid var(--glass-border); margin:20px 0;">
+<h4>Passwort</h4>
+<div id="pw-status" style="font-size:13px; opacity:0.6; margin-bottom:8px;"></div>
+<input type="password" id="pw-new" placeholder="Neues Passwort" 
+    style="width:100%; padding:8px 12px; border-radius:8px; border:1px solid var(--glass-border); background:rgba(255,255,255,0.1); color:var(--text-color); font-family:inherit; margin-bottom:6px; box-sizing:border-box;">
+<input type="password" id="pw-confirm" placeholder="Passwort wiederholen"
+    style="width:100%; padding:8px 12px; border-radius:8px; border:1px solid var(--glass-border); background:rgba(255,255,255,0.1); color:var(--text-color); font-family:inherit; margin-bottom:6px; box-sizing:border-box;">
+<div id="pw-error" style="color:#ff5f56; font-size:12px; min-height:16px;"></div>
+<button class="btn-ui" onclick="savePassword()">Passwort speichern</button>
+<button class="btn-ui" onclick="removePassword()" style="background:rgba(255,95,86,0.7);">Passwort entfernen</button>
+    <hr style="border:0; border-top:1px solid var(--glass-border); margin:20px 0;">
+    </select>
+</div></div>
+<div id="win-about" class="window" style="width:420px; height:320px;">
+    <div class="window-header">
+        <span>Über Doors 12</span>
+        <div class="win-controls">
+            <span class="ctrl-close" onclick="closeWin('win-about')"></span>
+        </div>
+    </div>
+    <div class="window-content" style="text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px;">
+<svg id="about-logo" viewBox="0 0 24 24" style="width:64px; height:64px; fill:var(--accent-color); cursor:pointer;" onclick="easterEgg()">
+    <path d="M13,3H7C5.89,3 5,3.89 5,5V19C5,20.11 5.89,21 7,21H13V3M13,11A1,1 0 0,1 12,12A1,1 0 0,1 11,11A1,1 0 0,1 12,10A1,1 0 0,1 13,11M19,3H15V21H19C20.11,21 21,20.11 21,19V5C21,3.89 20.11,3 19,3Z"/>
+</svg>
+        <h2 style="margin:0;">Doors 12</h2>
+        <div style="opacity:0.7; font-size:13px;">Version 1.3 Pro — Free Test</div>
+        <hr style="width:80%; border:none; border-top:1px solid var(--glass-border);">
+        <div style="font-size:12px; opacity:0.6; line-height:1.8;">
+            Ein Produkt von <b>Gurkosoft</b><br>
+            © 2026 Gurkosoft. Alle Rechte vorbehalten.
+        </div>
+        <div style="font-size:11px; opacity:0.4;">HTML-Code mithilfe von KI erstellt.</div>
+    </div>
+</div>
+<div id="win-calendar" class="window">
+    <div class="window-header"><span>Gurkender</span><div class="win-controls"><span class="ctrl-min" onclick="minimizeWin('win-calendar')"></span><span class="ctrl-max" onclick="toggleFS('win-calendar')"></span><span class="ctrl-close" onclick="closeWin('win-calendar')"></span></div></div>
+    <div class="window-content">
+        <div class="calendar-header">
+            <h3 id="cal-month-year">Monat Jahr</h3>
+        </div>
+        <table class="calendar-table">
+            <thead>
+                <tr><th>MO</th><th>DI</th><th>MI</th><th>DO</th><th>FR</th><th>SA</th><th>SO</th></tr>
+            </thead>
+            <tbody id="calendar-body"></tbody>
+        </table>
+    </div>
+</div>
+
+<div id="win-profile" class="window"><div class="window-header"><span>Profilbild auswählen</span><div class="win-controls"><span class="ctrl-close" onclick="closeWin('win-profile')"></span></div></div><div class="window-content">
+    <h4>Avatar wählen</h4>
+    <div class="avatar-grid">
+        <img class="avatar-option" src="https://images.unsplash.com/photo-1712921674663-0bf5370a2ce7?q=80&w=735&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" onclick="setProfilePic(this.src)">
+        <img class="avatar-option" src="https://images.unsplash.com/photo-1606041008023-472dfb5e530f?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8Qmx1bWV8ZW58MHx8MHx8fDA%3D" onclick="setProfilePic(this.src)">
+        <img class="avatar-option" src="https://images.unsplash.com/photo-1545220406-9464b49eb86e?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" onclick="setProfilePic(this.src)">
+        <img class="avatar-option" src="https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" onclick="setProfilePic(this.src)">
+        <img class="avatar-option" src="https://plus.unsplash.com/premium_photo-1661884002007-fea55e211ec7?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" onclick="setProfilePic(this.src)">
+        <img class="avatar-option" src="https://images.unsplash.com/photo-1511367461989-f85a21fda167?q=80&w=1931&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" onclick="setProfilePic(this.src)">
+    </div>
+    <input type="file" id="avatar-upload" accept="image/*" style="display:none" onchange="handleImageUpload(event)">
+    <button class="btn-ui" onclick="document.getElementById('avatar-upload').click()">Eigenes bild auswählen...</button>
+</div></div>
+
+<div id="win-clicker" class="window"><div class="window-header"><span>Spiel: Clicker</span><div class="win-controls"><span class="ctrl-min" onclick="minimizeWin('win-clicker')"></span><span class="ctrl-max" onclick="toggleFS('win-clicker')"></span><span class="ctrl-close" onclick="closeWin('win-clicker')"></span></div></div><div class="window-content" style="text-align:center;"><h3>Klicks: <span id="s1">0</span></h3><button class="btn-ui" onclick="document.getElementById('s1').innerText++">Klick mich!</button></div></div>
+
+<div id="win-snake" class="window">
+    <div class="window-header">
+        <span>Snake</span>
+        <div class="win-controls">
+            <span class="ctrl-min" onclick="minimizeWin('win-snake')"></span>
+            <span class="ctrl-max" onclick="toggleFS('win-snake')"></span>
+            <span class="ctrl-close" onclick="closeWin('win-snake')"></span>
+        </div>
+    </div>
+    <div class="window-content" style="display: flex; flex-direction: column; align-items: center; background: #1a1a1a; padding: 10px;">
+    <canvas id="snakeCanvas" width="300" height="300" style="background: #000; border: 2px solid var(--accent-color); display: block;"></canvas>
+    <div id="snake-score" style="color: white; margin-top: 5px; font-family: monospace;">Score: 0</div>
+    <button class="btn-ui" onclick="startSnake()">Spiel starten / Reset</button>
+</div>
+</div>
+
+<div id="start-menu">
+    <div id="menu-sidebar">
+        <div style="text-align:center; margin-bottom:20px;">
+    <div id="user-avatar" class="profile-pic" onclick="openWin('win-profile'); hidePopups();">GB</div>
+    <span id="username-display" style="font-weight:600; font-size:14px; cursor:pointer;" onclick="changeUsername()">Gustav Beispielgurke</span>
+    <div style="font-size: 11px; opacity: 0.6;">Admin</div>
+</div>
+        <button class="btn-ui" onclick="openWin('win-calendar'); hidePopups();" style="width:100%; margin-bottom:10px;">Gurkender</button>
+<button class="btn-ui" onclick="openWin('win-about'); hidePopups();" style="width:100%; margin-bottom:10px;">Über Doors 12</button>
+        <div style="margin-top:auto;">
+            <button class="btn-ui btn-shutdown" style="width:100%;" onclick="shutdownOS()">Herunterfahren</button>
+        </div>
+    </div>
+    <div id="menu-apps"></div>
+</div>
+
+<div id="taskbar">
+    <div class="task-btn" onclick="toggleStart(event)" style="background: var(--accent-color); border-radius: 15px;">
+        <svg viewBox="0 0 24 24"><path d="M13,3H7C5.89,3 5,3.89 5,5V19C5,20.11 5.89,21 7,21H13V3M13,11A1,1 0 0,1 12,12A1,1 0 0,1 11,11A1,1 0 0,1 12,10A1,1 0 0,1 13,11M19,3H15V21H19C20.11,21 21,20.11 21,19V5C21,3.89 20.11,3 19,3Z"/></svg>
+    </div>
+    <div id="active-icons"></div>
+    <div id="taskbar-clock" onclick="openWin('win-calendar')">00:00:00</div>
+</div>
+
+<script>
+// Gurkweb
+let gwTabs = [{ title: 'Startseite', url: '' }];
+let gwActiveTab = 0;
+
+function gwRenderTabs() {
+    const bar = document.getElementById('gw-tabbar');
+    bar.innerHTML = '';
+    gwTabs.forEach((tab, i) => {
+        const t = document.createElement('div');
+        t.className = 'gw-tab' + (i === gwActiveTab ? ' active' : '');
+        t.innerHTML = `<span onclick="gwSwitchTab(${i})">${tab.title}</span><span class="gw-tab-close" onclick="gwCloseTab(${i})">✕</span>`;
+        bar.appendChild(t);
+    });
+    const plus = document.createElement('button');
+    plus.onclick = gwNewTab;
+    plus.style.cssText = 'background:rgba(255,255,255,0.1);border:none;color:var(--text-color);border-radius:8px 8px 0 0;padding:5px 12px;cursor:pointer;font-size:18px;';
+    plus.innerText = '+';
+    bar.appendChild(plus);
+}
+
+function gwNewTab() {
+    gwTabs.push({ title: 'Startseite', url: '' });
+    gwActiveTab = gwTabs.length - 1;
+    gwShowHome();
+    gwRenderTabs();
+}
+
+function gwCloseTab(i) {
+    if (gwTabs.length === 1) return;
+    gwTabs.splice(i, 1);
+    if (gwActiveTab >= gwTabs.length) gwActiveTab = gwTabs.length - 1;
+    gwSwitchTab(gwActiveTab);
+}
+
+function gwSwitchTab(i) {
+    gwActiveTab = i;
+    const tab = gwTabs[i];
+    if (tab.url) gwLoadUrl(tab.url);
+    else gwShowHome();
+    gwRenderTabs();
+}
+
+function gwShowHome() {
+    document.getElementById('gw-homepage').style.display = 'block';
+    document.getElementById('gw-frame').style.display = 'none';
+    document.getElementById('gw-urlbar').value = '';
+}
+
+function gwLoadUrl(url) {
+    document.getElementById('gw-homepage').style.display = 'none';
+    const frame = document.getElementById('gw-frame');
+    frame.style.display = 'block';
+    frame.src = url;
+    document.getElementById('gw-urlbar').value = url;
+    gwTabs[gwActiveTab].url = url;
+    gwTabs[gwActiveTab].title = new URL(url).hostname.replace('www.', '');
+    gwRenderTabs();
+}
+
+function gwNavigate(url) {
+    if (!url) return;
+    if (!url.startsWith('http')) url = 'https://' + url;
+    gwLoadUrl(url);
+}
+
+function gwHome() { gwTabs[gwActiveTab].url = ''; gwShowHome(); gwRenderTabs(); }
+function gwBack() { document.getElementById('gw-frame').contentWindow?.history.back(); }
+function gwForward() { document.getElementById('gw-frame').contentWindow?.history.forward(); }
+let highestZ = 100;
+
+// NEU — direkt hier einfügen:
+const wallpapers = {
+standard:   { dark: 'https://i.postimg.cc/yVHWhzsP/7724c5fb-01.png',  light: 'https://i.postimg.cc/Hp9nBPLH/7724c5fb-02.png'  },
+    gruen:   { dark: 'https://i.postimg.cc/js42Zkjr/7724c5fb-03.png',  light: 'https://i.postimg.cc/js42ZkjS/7724c5fb-04.png'  },
+    blau:    { dark: 'https://i.postimg.cc/FrFRqgf1/7724c5fb-07.png',   light: 'https://i.postimg.cc/Yr29Vf4Y/7724c5fb-08.png'   },
+    rot:     { dark: 'https://i.postimg.cc/tXNJ2mgG/7724c5fb-05.png',    light: 'https://i.postimg.cc/D2P0BYzG/7724c5fb-06.png'    },
+    lila:    { dark: 'https://i.postimg.cc/BSZ6yc8p/7724c5fb-09.png',   light: 'https://i.postimg.cc/vY8BjL1q/7724c5fb-10.png'   },
+   orange:    { dark: 'https://i.postimg.cc/1mRtTcgj/7724c5fb-11.png',   light: 'https://i.postimg.cc/KG9zykL9/7724c5fb-12.png'   },
+};
+let currentColor = 'standard';
+let currentTheme = 'dark';
+    const runningApps = new Map();
+    const apps = [
+     {id: 'win-browser', name: 'Gurkweb', svg: '<path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>', img: 'https://testing.gurkenschau.eu/wp-content/uploads/2026/02/cropped-Logo-Tuerkis.png', onDesktop: true, x: 20, y: 20},
+        {id: 'win-office', name: 'Gurk-Office', svg: '<path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>', onDesktop: true, x: 20, y: 130},
+        {id: 'win-settings', name: 'Einstellungen', svg: '<path d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.44,2.42C14.39,2.17 14.18,2 13.93,2H9.93C9.68,2 9.47,2.17 9.44,2.42L9.07,5.07C8.44,5.32 7.9,5.66 7.38,6.05L4.89,5.05C4.67,4.96 4.4,5.05 4.27,5.27L2.27,8.73C2.15,8.95 2.2,9.22 2.39,9.37L4.5,11C4.47,11.34 4.44,11.67 4.44,12C4.44,12.33 4.47,12.65 4.5,12.97L2.39,14.63C2.2,14.78 2.15,15.05 2.27,15.27L4.27,18.73C4.4,18.95 4.67,19.04 4.89,18.95L7.38,17.95C7.9,18.34 8.44,18.68 9.07,18.93L9.44,21.58C9.47,21.83 9.68,22 9.93,22H13.93C14.18,22 14.39,21.83 14.44,21.58L14.87,18.93C15.5,18.68 16.04,18.34 16.56,17.95L19.05,18.95C19.27,19.04 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"/>', onDesktop: true, x: 20, y: 240},
+        {id: 'win-clicker', name: 'Clicker', svg: '<path d="M21,16.5L12,21L3,16.5V7.5L12,3L21,7.5V16.5Z"/>', onDesktop: false},
+{id: 'win-snake', name: 'Snake', svg: '<path d="M7,7H9V9H7V7M15,7H17V9H15V7M7,11H17V17H7V11M9,13V15H15V13H9Z"/>', onDesktop: false},
+{id: 'win-explorer', name: 'Eigene Dateien', svg: '<path d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"/>', onDesktop: true, x: 20, y: 350},
+        {id: 'win-calendar', name: 'Kalender', svg: '<path d="M19,19H5V8H19M16,1V3H8V1H6V3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3H18V1M17,12H12V17H17V12Z"/>', onDesktop: false}
+    ];
+
+function navigateBrowser() {
+    let url = document.getElementById('browser-url').value;
+    
+    // Automatisch https:// hinzufügen, falls es fehlt
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = 'https://' + url;
+    }
+    
+    document.getElementById('browser-frame').src = url;
+}
+
+// Ermöglicht das Absenden mit der Enter-Taste
+document.getElementById('browser-url')?.addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') {
+        navigateBrowser();
+    }
+});
+
+    function init() {
+  const savedColor = localStorage.getItem('doors12_color');
+    if (savedColor) setColor(savedColor);
+ const savedTheme = localStorage.getItem('doors12_theme');
+    if (savedTheme) setTheme(savedTheme);
+        const menuApps = document.getElementById('menu-apps');
+        apps.forEach(app => {
+            if(app.onDesktop) createDesktopIcon(app);
+            createMenuIcon(app, menuApps);
+        });
+        setInterval(() => {
+            document.getElementById('taskbar-clock').innerText = new Date().toLocaleTimeString('de-DE');
+        }, 1000);
+        renderCalendar();
+        setTimeout(() => { document.getElementById('overlay-screen').classList.add('screen-hidden'); }, 2500);
+    initPasswordSystem(); // NEU
+}
+
+    // Kalender-Logik
+    function renderCalendar() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth();
+        const today = now.getDate();
+
+        const monthNames = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+        document.getElementById('cal-month-year').innerText = `${monthNames[month]} ${year}`;
+
+        const firstDay = (new Date(year, month, 1).getDay() + 6) % 7;
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const body = document.getElementById('calendar-body');
+        body.innerHTML = '';
+
+        let date = 1;
+        for (let i = 0; i < 6; i++) {
+            let row = document.createElement('tr');
+            for (let j = 0; j < 7; j++) {
+                let cell = document.createElement('td');
+                if (i === 0 && j < firstDay) {
+                    cell.innerText = "";
+                } else if (date > daysInMonth) {
+                    break;
+                } else {
+                    cell.innerText = date;
+                    if (date === today) cell.className = 'today';
+                    date++;
+                }
+                row.appendChild(cell);
+            }
+            body.appendChild(row);
+            if (date > daysInMonth) break;
+        }
+    }
+
+    // Standard Funktionen
+    function setProfilePic(src) {
+        [document.getElementById('user-avatar'), document.getElementById('settings-profile-preview')].forEach(el => {
+            if(el) el.innerHTML = `<img src="${src}">`;
+        });
+    }
+
+    function handleImageUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => setProfilePic(e.target.result);
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function setWallpaper(url) { document.body.style.backgroundImage = `url('${url}')`; }
+
+function setTheme(t) {
+    currentTheme = t;
+    if (t === 'glass') document.body.className = 'glass-theme';
+    else if (t === 'win7') document.body.className = 'win7-theme';
+    else document.body.className = '';
+    updateWallpaper();
+}
+
+const accentColors = {
+    standard: '#008b8b',
+    gruen:    '#2d9e2d',
+    blau:     '#1a56db',
+    rot:      '#cc1f1f',
+    lila:     '#7c3aed',
+    orange:   '#d97706',
+};
+
+function setColor(color) {
+    currentColor = color;
+    updateWallpaper();
+    // Akzentfarbe anpassen
+    if (accentColors[color]) {
+        document.documentElement.style.setProperty('--accent-color', accentColors[color]);
+    }
+}
+function setColor(color) {
+    currentColor = color;
+    updateWallpaper();
+    if (accentColors[color]) {
+        document.documentElement.style.setProperty('--accent-color', accentColors[color]);
+    }
+    localStorage.setItem('doors12_color', color); // NEU
+}
+
+function updateWallpaper() {
+    const mode = (currentTheme === 'dark') ? 'dark' : 'light';
+    const url = wallpapers[currentColor][mode];
+    document.body.style.backgroundImage = `url('${url}')`;
+}
+
+    function createDesktopIcon(app) {
+        const desk = document.getElementById('desktop');
+        const icon = document.createElement('div');
+        icon.className = 'app-icon';
+        icon.id = 'icon-' + app.id;
+        icon.style.left = (app.x || 20) + 'px';
+        icon.style.top = (app.y || 20) + 'px';
+        icon.innerHTML = `<svg viewBox="0 0 24 24">${app.svg}</svg><span>${app.name}</span>`;
+        icon.ondblclick = () => openWin(app.id, app.svg);
+        icon.onmousedown = (e) => {
+            e.stopPropagation();
+            let shiftX = e.clientX - icon.getBoundingClientRect().left;
+            let shiftY = e.clientY - icon.getBoundingClientRect().top;
+            function onMouseMove(e) {
+                icon.style.left = e.pageX - shiftX + 'px';
+                icon.style.top = e.pageY - shiftY + 'px';
+            }
+            document.addEventListener('mousemove', onMouseMove);
+            document.onmouseup = () => {
+                document.removeEventListener('mousemove', onMouseMove);
+                document.onmouseup = null;
+            };
+        };
+        desk.appendChild(icon);
+    }
+
+    function createMenuIcon(app, target) {
+        const div = document.createElement('div');
+        div.className = 'menu-app-item';
+        div.innerHTML = `<svg viewBox="0 0 24 24">${app.svg}</svg><span>${app.name}</span>`;
+        div.onclick = () => { openWin(app.id, app.svg); hidePopups(); };
+        target.appendChild(div);
+    }
+
+    function openWin(id, svg) {
+        const win = document.getElementById(id);
+        win.style.display = 'flex';
+        win.style.zIndex = ++highestZ;
+        if(!win.style.top) { win.style.top = '100px'; win.style.left = '100px'; }
+        runningApps.set(id, svg || '');
+        updateTaskbar();
+    }
+
+    function closeWin(id) {
+        document.getElementById(id).style.display = 'none';
+        runningApps.delete(id);
+        updateTaskbar();
+    }
+
+    function minimizeWin(id) {
+        document.getElementById(id).style.display = 'none';
+        updateTaskbar();
+    }
+
+    function toggleFS(id) {
+    const win = document.getElementById(id);
+    win.classList.toggle('fullscreen');
+    
+    // Bringt das Fenster in den Vordergrund, wenn es maximiert wird
+    if (win.classList.contains('fullscreen')) {
+        win.style.zIndex = ++highestZ;
+    }
+}
+
+    function updateTaskbar() {
+        const container = document.getElementById('active-icons');
+        container.innerHTML = '';
+        runningApps.forEach((svg, id) => {
+            const btn = document.createElement('div');
+            btn.className = 'task-btn active';
+            btn.innerHTML = `<svg viewBox="0 0 24 24">${svg}</svg>`;
+            btn.onclick = () => openWin(id, svg);
+            container.appendChild(btn);
+        });
+    }
+
+    function toggleStart(e) {
+        e.stopPropagation();
+        const s = document.getElementById('start-menu');
+        s.style.display = (s.style.display === 'grid') ? 'none' : 'grid';
+    }
+
+    function hidePopups() { document.getElementById('start-menu').style.display = 'none'; }
+
+    function shutdownOS() {
+        const screen = document.getElementById('overlay-screen');
+        document.getElementById('overlay-loader').style.display = 'none';
+        document.getElementById('shutdown-msg').style.display = 'block';
+        screen.classList.remove('screen-hidden');
+        setTimeout(() => location.reload(), 3000);
+    }
+
+    document.querySelectorAll('.window').forEach(win => {
+        const h = win.querySelector('.window-header');
+        h.onmousedown = (e) => {
+            if(win.classList.contains('fullscreen')) return;
+            win.style.zIndex = ++highestZ;
+            let sx = e.clientX - win.offsetLeft, sy = e.clientY - win.offsetTop;
+            document.onmousemove = (e) => { 
+                win.style.left = e.pageX - sx + 'px'; 
+                win.style.top = e.pageY - sy + 'px'; 
+            };
+            document.onmouseup = () => document.onmousemove = null;
+        };
+    });
+
+    init();
+const expIconEl = document.getElementById('icon-win-explorer');
+if (expIconEl) expIconEl.ondblclick = () => expOpen();
+function changeUsername() {
+    let oldName = document.getElementById('username-display').innerText;
+    let newName = prompt("Gib einen neuen Namen ein:", oldName);
+
+    if (newName && newName.trim() !== "") {
+        // 1. Namen im Startmenü ändern
+        document.getElementById('username-display').innerText = newName;
+
+        // 2. Kürzel berechnen (Erster Buchstabe Vorname + Erster Buchstabe Nachname)
+        let parts = newName.trim().split(" ");
+        let initials = "";
+        if (parts.length >= 2) {
+            initials = parts[0][0] + parts[parts.length - 1][0];
+        } else {
+            initials = parts[0][0];
+        }
+        initials = initials.toUpperCase();
+
+        // 3. Kürzel auf den Profilbildern aktualisieren (nur wenn kein <img> drin ist)
+        const profileElements = [
+            document.getElementById('user-avatar'), 
+            document.getElementById('settings-profile-preview')
+        ];
+
+        profileElements.forEach(el => {
+            if (el && !el.querySelector('img')) {
+                el.innerText = initials;
+            }
+        });
+    }
+}
+let snakeInterval;
+function startSnake() {
+    const canvas = document.getElementById('snakeCanvas');
+    if(!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('snake-score');
+    
+    // Spiel-Variablen zurücksetzen
+    let score = 0;
+    let box = 20; 
+    let snake = [{x: 8 * box, y: 8 * box}, {x: 7 * box, y: 8 * box}]; // Start mit 2 Gliedern
+    let food = {x: Math.floor(Math.random() * 14 + 1) * box, y: Math.floor(Math.random() * 14 + 1) * box};
+    let d = "RIGHT";
+    let nextD = "RIGHT"; // Puffer für die Richtung, um Selbstkollision durch schnelles Drücken zu verhindern
+
+    // Steuerung fixieren
+    document.addEventListener('keydown', (e) => {
+        if(e.key === "ArrowLeft" && d !== "RIGHT") nextD = "LEFT";
+        else if(e.key === "ArrowUp" && d !== "DOWN") nextD = "UP";
+        else if(e.key === "ArrowRight" && d !== "LEFT") nextD = "RIGHT";
+        else if(e.key === "ArrowDown" && d !== "UP") nextD = "DOWN";
+    });
+
+    if(snakeInterval) clearInterval(snakeInterval);
+    
+    scoreEl.innerText = "Score: 0";
+
+    snakeInterval = setInterval(() => {
+        d = nextD; // Richtung erst beim nächsten Schritt übernehmen
+        
+        // Canvas leeren
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Essen zeichnen
+        ctx.fillStyle = "#ff5f56"; // Rot [cite: 41]
+        ctx.fillRect(food.x, food.y, box - 2, box - 2);
+
+        // Schlange zeichnen
+        for(let i = 0; i < snake.length; i++) {
+            ctx.fillStyle = (i === 0) ? "#ffcc00" : "#ffffff"; // Kopf gelb [cite: 2], Körper weiß [cite: 31]
+            ctx.fillRect(snake[i].x, snake[i].y, box - 2, box - 2);
+        }
+
+        let snakeX = snake[0].x;
+        let snakeY = snake[0].y;
+
+        if(d === "LEFT") snakeX -= box;
+        if(d === "UP") snakeY -= box;
+        if(d === "RIGHT") snakeX += box;
+        if(d === "DOWN") snakeY += box;
+
+        // Essen-Logik
+        if(snakeX === food.x && snakeY === food.y) {
+            score++;
+            scoreEl.innerText = "Score: " + score;
+            food = {x: Math.floor(Math.random() * 14 + 1) * box, y: Math.floor(Math.random() * 14 + 1) * box};
+        } else {
+            snake.pop();
+        }
+
+        let newHead = {x: snakeX, y: snakeY};
+
+        // Kollisions-Prüfung (Wand oder Selbst)
+        if(snakeX < 0 || snakeX >= canvas.width || snakeY < 0 || snakeY >= canvas.height || collision(newHead, snake)) {
+            clearInterval(snakeInterval);
+            ctx.fillStyle = "white";
+            ctx.font = "20px Arial";
+            ctx.fillText("GAME OVER", 90, 150);
+            return;
+        }
+
+        snake.unshift(newHead);
+    }, 170); // Geschwindigkeit etwas langsamer (120ms)
+
+    function collision(head, array) {
+        for(let i = 0; i < array.length; i++) {
+            if(head.x === array[i].x && head.y === array[i].y) return true;
+        }
+        return false;
+    }
+}
+// Rechtsklick-Menü
+document.getElementById('desktop').addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    const menu = document.getElementById('context-menu');
+    menu.style.display = 'block';
+    // Verhindert dass das Menü aus dem Bildschirm ragt
+    const x = Math.min(e.clientX, window.innerWidth - 220);
+    const y = Math.min(e.clientY, window.innerHeight - 200);
+    menu.style.left = x + 'px';
+    menu.style.top = y + 'px';
+});
+
+function hideCtx() { document.getElementById('context-menu').style.display = 'none'; }
+document.addEventListener('click', hideCtx);
+document.addEventListener('contextmenu', (e) => { if(e.target.closest('#context-menu')) return; });
+// Untermenü Hintergrund
+document.getElementById('ctx-wallpaper-btn').addEventListener('mouseenter', () => {
+    const btn = document.getElementById('ctx-wallpaper-btn');
+    const sub = document.getElementById('ctx-wallpaper-sub');
+    const rect = btn.getBoundingClientRect();
+    sub.style.display = 'block';
+    const x = Math.min(rect.right + 5, window.innerWidth - 220);
+    const y = Math.min(rect.top, window.innerHeight - 250);
+    sub.style.left = x + 'px';
+    sub.style.top = y + 'px';
+});
+
+document.getElementById('ctx-wallpaper-btn').addEventListener('mouseleave', (e) => {
+    const sub = document.getElementById('ctx-wallpaper-sub');
+    if (!e.relatedTarget?.closest('#ctx-wallpaper-sub')) {
+        sub.style.display = 'none';
+    }
+});
+
+document.getElementById('ctx-wallpaper-sub').addEventListener('mouseleave', (e) => {
+    if (!e.relatedTarget?.closest('#ctx-wallpaper-btn')) {
+        document.getElementById('ctx-wallpaper-sub').style.display = 'none';
+    }
+});
+// Easter Egg
+function easterEgg() {
+    const logo = document.getElementById('about-logo');
+    const effects = ['spin360', 'bigBounce', 'wiggle', 'konfetti'];
+    const pick = effects[Math.floor(Math.random() * effects.length)];
+
+    if (pick === 'konfetti') {
+        spawnKonfetti();
+        return;
+    }
+
+    logo.style.animation = '';
+    void logo.offsetWidth; // reflow damit Animation neu startet
+    logo.style.animation = `${pick} 0.6s ease`;
+    logo.addEventListener('animationend', () => logo.style.animation = '', { once: true });
+}
+
+function spawnKonfetti() {
+    const win = document.getElementById('win-about');
+    const colors = ['#ffcc00','#008b8b','#ff5f56','#28c940','#a855f7','#3b82f6'];
+    for (let i = 0; i < 40; i++) {
+        const p = document.createElement('div');
+        p.style.cssText = `
+            position:absolute; width:8px; height:8px; border-radius:2px;
+            background:${colors[Math.floor(Math.random()*colors.length)]};
+            left:${Math.random()*100}%; top:0;
+            pointer-events:none; z-index:9999;
+            animation: konfettiFall ${0.8 + Math.random()*0.8}s ease forwards;
+        `;
+        win.appendChild(p);
+        setTimeout(() => p.remove(), 1600);
+    }
+}
+// ===== PASSWORT-SYSTEM =====
+function initPasswordSystem() {
+    const pw = localStorage.getItem('doors12_pw');
+    const firstRun = localStorage.getItem('doors12_firstrun');
+
+    if (!firstRun) {
+        // Erster Start — kein Passwort nötig, aber danach auffordern
+        localStorage.setItem('doors12_firstrun', 'done');
+        setTimeout(() => promptSetPassword(), 3000); // 3 Sek nach Boot
+        return;
+    }
+
+if (pw) {
+    // Warten bis Boot-Animation fertig ist (2500ms)
+    setTimeout(() => {
+        document.getElementById('lock-screen').style.display = 'flex';
+        setTimeout(() => document.getElementById('lock-input').focus(), 100);
+    }, 2600);
+}
+    updatePwStatus();
+}
+
+function checkPassword() {
+    const pw = localStorage.getItem('doors12_pw');
+    const input = document.getElementById('lock-input').value;
+    if (input === pw) {
+        document.getElementById('lock-screen').style.display = 'none';
+        document.getElementById('lock-error').innerText = '';
+    } else {
+        document.getElementById('lock-error').innerText = 'Falsches Passwort.';
+        document.getElementById('lock-input').value = '';
+        document.getElementById('lock-input').focus();
+    }
+}
+
+function promptSetPassword() {
+    if (localStorage.getItem('doors12_pw')) return; // schon gesetzt
+    openWin('win-settings');
+    // Kurz nach unten scrollen zum Passwort-Bereich
+    setTimeout(() => {
+        const content = document.querySelector('#win-settings .window-content');
+        if (content) content.scrollTop = content.scrollHeight;
+    }, 200);
+    // Kleiner Hinweis
+    showToast('Bitte lege ein Passwort fest!');
+}
+
+function savePassword() {
+    const neu = document.getElementById('pw-new').value;
+    const confirm = document.getElementById('pw-confirm').value;
+    const err = document.getElementById('pw-error');
+
+    if (neu.length < 4) { err.innerText = 'Mindestens 4 Zeichen.'; return; }
+    if (neu !== confirm) { err.innerText = 'Passwörter stimmen nicht überein.'; return; }
+
+    localStorage.setItem('doors12_pw', neu);
+    err.innerText = '';
+    document.getElementById('pw-new').value = '';
+    document.getElementById('pw-confirm').value = '';
+    updatePwStatus();
+    showToast('Passwort gespeichert!');
+}
+
+function removePassword() {
+    localStorage.removeItem('doors12_pw');
+    updatePwStatus();
+    showToast('Passwort entfernt.');
+}
+
+function updatePwStatus() {
+    const el = document.getElementById('pw-status');
+    if (!el) return;
+    el.innerText = localStorage.getItem('doors12_pw') 
+        ? 'Passwort ist gesetzt.' 
+        : 'Kein Passwort gesetzt.';
+}
+
+function showToast(msg) {
+    let toast = document.getElementById('doors-toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'doors-toast';
+        toast.style.cssText = `
+            position:fixed; bottom:80px; left:50%; transform:translateX(-50%);
+            background:rgba(0,0,0,0.85); color:white; padding:10px 20px;
+            border-radius:12px; font-size:13px; z-index:99998;
+            backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1);
+            transition: opacity 0.4s;
+        `;
+        document.body.appendChild(toast);
+    }
+    toast.innerText = msg;
+    toast.style.opacity = '1';
+    clearTimeout(toast._timeout);
+    toast._timeout = setTimeout(() => toast.style.opacity = '0', 2500);
+}
+
+// ===== Eigene Dateien =====
+const FS_KEY = 'doors12_fs';
+let expCurrentPath = 'root';
+let expHistory = ['root'];
+let expHistoryPos = 0;
+let expSelected = null;
+let expDialogCallback = null;
+let expCtxTarget = null;
+ 
+// Dateisystem initialisieren
+function fsInit() {
+    if (!localStorage.getItem(FS_KEY)) {
+        const defaultFS = {
+            root: {
+                type: 'folder', name: 'Eigene Dateien', children: {
+                    'Dokumente': { type: 'folder', name: 'Dokumente', children: {} },
+                    'Bilder': { type: 'folder', name: 'Bilder', children: {} },
+                    'Verknüpfungen': { type: 'folder', name: 'Verknüpfungen', children: {} },
+                    'Willkommen.txt': { type: 'txt', name: 'Willkommen.txt', content: 'Willkommen im Eigene Dateien!\n\nHier kannst du Dateien und Ordner verwalten.' }
+                }
+            }
+        };
+        localStorage.setItem(FS_KEY, JSON.stringify(defaultFS));
+    }
+}
+ 
+function fsLoad() { return JSON.parse(localStorage.getItem(FS_KEY)); }
+function fsSave(fs) { localStorage.setItem(FS_KEY, JSON.stringify(fs)); }
+ 
+function fsGetNode(path) {
+    const fs = fsLoad();
+    if (path === 'root') return fs.root;
+    const parts = path.split('/');
+    let node = fs.root;
+    for (const p of parts) {
+        if (!node.children || !node.children[p]) return null;
+        node = node.children[p];
+    }
+    return node;
+}
+ 
+function fsGetParentAndKey(path) {
+    if (path === 'root') return null;
+    const parts = path.split('/');
+    const key = parts.pop();
+    const parentPath = parts.length === 0 ? 'root' : parts.join('/');
+    return { parentPath, key };
+}
+ 
+// Icons je nach Typ
+function expIcon(type) {
+    const icons = { folder: '📁', txt: '📄', office: '📝', image: '🖼️', shortcut: '🔗' };
+    return icons[type] || '📄';
+}
+ 
+// Pfad anzeigen
+function expPathLabel(path) {
+    if (path === 'root') return '/ Eigene Dateien';
+    return '/ Eigene Dateien / ' + path.replace(/\//g, ' / ');
+}
+ 
+// Navigieren
+function expNavigate(path) {
+    expHistory = expHistory.slice(0, expHistoryPos + 1);
+    expHistory.push(path);
+    expHistoryPos = expHistory.length - 1;
+    expCurrentPath = path;
+    expRender();
+}
+ 
+function expBack() {
+    if (expHistoryPos > 0) {
+        expHistoryPos--;
+        expCurrentPath = expHistory[expHistoryPos];
+        expRender();
+    }
+}
+ 
+function expUp() {
+    if (expCurrentPath === 'root') return;
+    const parts = expCurrentPath.split('/');
+    parts.pop();
+    expNavigate(parts.length === 0 ? 'root' : parts.join('/'));
+}
+ 
+function expRefresh() { expRender(); }
+ 
+function expRender() {
+    const node = fsGetNode(expCurrentPath);
+    const container = document.getElementById('exp-files');
+    const pathEl = document.getElementById('exp-path');
+    const status = document.getElementById('exp-statusbar');
+    if (!container) return;
+ 
+    pathEl.value = expPathLabel(expCurrentPath);
+    container.innerHTML = '';
+    expSelected = null;
+ 
+    if (!node || node.type !== 'folder') {
+        container.innerHTML = '<div style="opacity:0.4; padding:20px;">Ordner nicht gefunden.</div>';
+        return;
+    }
+ 
+    const children = node.children || {};
+    const keys = Object.keys(children);
+ 
+    // Ordner zuerst, dann Dateien
+    const sorted = keys.sort((a, b) => {
+        if (children[a].type === 'folder' && children[b].type !== 'folder') return -1;
+        if (children[a].type !== 'folder' && children[b].type === 'folder') return 1;
+        return a.localeCompare(b);
+    });
+ 
+    sorted.forEach(key => {
+        const item = children[key];
+        const div = document.createElement('div');
+        div.className = 'exp-item';
+        div.dataset.key = key;
+        div.innerHTML = `<div class="exp-item-icon">${expIcon(item.type)}</div><div class="exp-item-name">${item.name}</div>`;
+ 
+        div.onclick = (e) => { e.stopPropagation(); expSelectItem(div, key); };
+        div.ondblclick = (e) => { e.stopPropagation(); expOpenItem(key); };
+        div.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); expItemCtx(e, key); };
+ 
+        container.appendChild(div);
+    });
+ 
+    status.innerText = `${keys.length} Element${keys.length !== 1 ? 'e' : ''}`;
+ 
+    // Sidebar aktiv markieren
+    document.querySelectorAll('.exp-sidebar-item').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.exp-sidebar-item').forEach(el => {
+        if (el.getAttribute('onclick')?.includes(`'${expCurrentPath}'`)) el.classList.add('active');
+    });
+}
+ 
+function expSelectItem(div, key) {
+    document.querySelectorAll('.exp-item').forEach(el => el.classList.remove('selected'));
+    div.classList.add('selected');
+    expSelected = key;
+}
+ 
+function expDeselect() {
+    document.querySelectorAll('.exp-item').forEach(el => el.classList.remove('selected'));
+    expSelected = null;
+}
+ 
+function expOpenItem(key) {
+    const childPath = expCurrentPath === 'root' ? key : `${expCurrentPath}/${key}`;
+    const node = fsGetNode(childPath);
+    if (!node) return;
+ 
+    if (node.type === 'folder') {
+        expNavigate(childPath);
+    } else if (node.type === 'txt' || node.type === 'office') {
+        expOpenTextFile(childPath, node);
+    } else if (node.type === 'image') {
+        expOpenImage(node);
+    } else if (node.type === 'shortcut') {
+        gwNavigate(node.url);
+        openWin('win-browser');
+    }
+}
+ 
+function expOpenTextFile(path, node) {
+    expShowDialog(
+        `📄 ${node.name}`,
+        `<textarea id="exp-edit-content">${node.content || ''}</textarea>`,
+        () => {
+            const content = document.getElementById('exp-edit-content').value;
+            const fs = fsLoad();
+            const parts = path.split('/');
+            const key = parts.pop();
+            let parent = fs.root;
+            for (const p of parts) parent = parent.children[p];
+            parent.children[key].content = content;
+            fsSave(fs);
+            showToast('Gespeichert!');
+        }, 'Speichern'
+    );
+}
+ 
+function expOpenImage(node) {
+    expShowDialog(
+        `🖼️ ${node.name}`,
+        `<img src="${node.url}" style="width:100%; border-radius:8px; max-height:300px; object-fit:contain;">`,
+        null, null
+    );
+}
+ 
+// Hintergrund-Kontextmenü
+function expBgCtx(e) {
+    e.preventDefault();
+    expShowCtx(e.clientX, e.clientY, [
+        { icon: ' ', label: 'Neuer Ordner', fn: () => expNewFolder() },
+        { icon: ' ', label: 'Neue Textdatei', fn: () => expNewFile('txt') },
+        { icon: ' ', label: 'Neues Office-Dokument', fn: () => expNewFile('office') },
+        { icon: ' ', label: 'Neues Bild (URL)', fn: () => expNewFile('image') },
+        { icon: ' ', label: 'Neue Verknüpfung', fn: () => expNewFile('shortcut') },
+        'divider',
+        { icon: ' ', label: 'Aktualisieren', fn: () => expRefresh() },
+    ]);
+}
+ 
+// Item-Kontextmenü
+function expItemCtx(e, key) {
+    expSelectItem(e.currentTarget, key);
+    const childPath = expCurrentPath === 'root' ? key : `${expCurrentPath}/${key}`;
+    const node = fsGetNode(childPath);
+ 
+    expShowCtx(e.clientX, e.clientY, [
+        { icon: ' ', label: 'Umbenennen', fn: () => expRename(key) },
+        { icon: ' ', label: 'Verschieben', fn: () => expMove(key) },
+        'divider',
+        { icon: ' ', label: 'Löschen', fn: () => expDelete(key), danger: true },
+    ]);
+}
+ 
+function expShowCtx(x, y, items) {
+    const ctx = document.getElementById('exp-ctx');
+    const content = document.getElementById('exp-ctx-content');
+    content.innerHTML = '';
+ 
+    items.forEach(item => {
+        if (item === 'divider') {
+            const hr = document.createElement('hr');
+            hr.className = 'exp-ctx-divider';
+            content.appendChild(hr);
+            return;
+        }
+        const div = document.createElement('div');
+        div.className = 'exp-ctx-item' + (item.danger ? ' danger' : '');
+        div.innerHTML = `${item.icon} ${item.label}`;
+        div.onclick = () => { expHideCtx(); item.fn(); };
+        content.appendChild(div);
+    });
+ 
+    ctx.style.display = 'block';
+    ctx.style.left = Math.min(x, window.innerWidth - 200) + 'px';
+    ctx.style.top = Math.min(y, window.innerHeight - 250) + 'px';
+}
+ 
+function expHideCtx() { document.getElementById('exp-ctx').style.display = 'none'; }
+document.addEventListener('click', expHideCtx);
+ 
+// Neuer Ordner
+function expNewFolder() {
+    expShowDialog('Neuer Ordner', '<input id="exp-inp" placeholder="Ordnername" value="Neuer Ordner">', () => {
+        const name = document.getElementById('exp-inp').value.trim();
+        if (!name) return;
+        const fs = fsLoad();
+        const node = fsGetNode(expCurrentPath);
+        // Direkt im fs navigieren
+        const parts = expCurrentPath === 'root' ? [] : expCurrentPath.split('/');
+        let cur = fs.root;
+        for (const p of parts) cur = cur.children[p];
+        if (cur.children[name]) { showToast('Name existiert bereits.'); return; }
+        cur.children[name] = { type: 'folder', name, children: {} };
+        fsSave(fs);
+        expRender();
+    });
+    setTimeout(() => { const i = document.getElementById('exp-inp'); if(i){i.focus();i.select();} }, 100);
+}
+ 
+// Neue Datei
+function expNewFile(type) {
+    const labels = { txt: 'Neue Textdatei', office: 'Neues Office-Dokument', image: 'Neues Bild', shortcut: 'Neue Verknüpfung' };
+    const ext = { txt: '.txt', office: '.doc', image: '.img', shortcut: '.lnk' };
+    let extraField = '';
+    if (type === 'image') extraField = '<input id="exp-inp2" placeholder="Bild-URL (https://...)">';
+    if (type === 'shortcut') extraField = '<input id="exp-inp2" placeholder="URL (https://...)">';
+ 
+    expShowDialog(labels[type], `<input id="exp-inp" placeholder="Dateiname">${extraField}`, () => {
+        let name = document.getElementById('exp-inp').value.trim();
+        if (!name) return;
+        if (!name.includes('.')) name += ext[type];
+        const url = document.getElementById('exp-inp2')?.value?.trim() || '';
+ 
+        const fs = fsLoad();
+        const parts = expCurrentPath === 'root' ? [] : expCurrentPath.split('/');
+        let cur = fs.root;
+        for (const p of parts) cur = cur.children[p];
+        if (cur.children[name]) { showToast('Name existiert bereits.'); return; }
+ 
+        const newFile = { type, name };
+        if (type === 'txt' || type === 'office') newFile.content = '';
+        if (type === 'image') newFile.url = url;
+        if (type === 'shortcut') newFile.url = url;
+        cur.children[name] = newFile;
+        fsSave(fs);
+        expRender();
+        if (type === 'txt' || type === 'office') {
+            const childPath = expCurrentPath === 'root' ? name : `${expCurrentPath}/${name}`;
+            expOpenTextFile(childPath, newFile);
+        }
+    });
+    setTimeout(() => { const i = document.getElementById('exp-inp'); if(i){i.focus();} }, 100);
+}
+ 
+// Umbenennen
+function expRename(key) {
+    expShowDialog('Umbenennen', `<input id="exp-inp" value="${key}">`, () => {
+        const newName = document.getElementById('exp-inp').value.trim();
+        if (!newName || newName === key) return;
+        const fs = fsLoad();
+        const parts = expCurrentPath === 'root' ? [] : expCurrentPath.split('/');
+        let cur = fs.root;
+        for (const p of parts) cur = cur.children[p];
+        if (cur.children[newName]) { showToast('Name existiert bereits.'); return; }
+        cur.children[newName] = { ...cur.children[key], name: newName };
+        delete cur.children[key];
+        fsSave(fs);
+        expRender();
+    });
+    setTimeout(() => { const i = document.getElementById('exp-inp'); if(i){i.focus();i.select();} }, 100);
+}
+ 
+// Löschen
+function expDelete(key) {
+    expShowDialog(`🗑️ "${key}" löschen?`, '<div style="opacity:0.7;font-size:13px;">Diese Aktion kann nicht rückgängig gemacht werden.</div>', () => {
+        const fs = fsLoad();
+        const parts = expCurrentPath === 'root' ? [] : expCurrentPath.split('/');
+        let cur = fs.root;
+        for (const p of parts) cur = cur.children[p];
+        delete cur.children[key];
+        fsSave(fs);
+        expRender();
+    }, 'Löschen');
+}
+ 
+// Verschieben
+function expMove(key) {
+    const fs = fsLoad();
+    // Alle Ordner als Optionen sammeln
+    const folders = [];
+    function collectFolders(node, path) {
+        if (node.type === 'folder') {
+            folders.push(path || 'root');
+            Object.keys(node.children || {}).forEach(k => collectFolders(node.children[k], path ? `${path}/${k}` : k));
+        }
+    }
+    collectFolders(fs.root, '');
+ 
+    const options = folders.filter(f => f !== expCurrentPath)
+        .map(f => `<option value="${f}">${f === 'root' ? '/ Eigene Dateien' : '/ ' + f.replace(/\//g, ' / ')}</option>`).join('');
+ 
+    expShowDialog('Verschieben', `<select id="exp-inp" style="width:100%;">${options}</select>`, () => {
+        const dest = document.getElementById('exp-inp').value;
+        const fs2 = fsLoad();
+ 
+        const srcParts = expCurrentPath === 'root' ? [] : expCurrentPath.split('/');
+        let src = fs2.root;
+        for (const p of srcParts) src = src.children[p];
+ 
+        const destParts = dest === 'root' ? [] : dest.split('/');
+        let dst = fs2.root;
+        for (const p of destParts) dst = dst.children[p];
+ 
+        if (dst.children[key]) { showToast('Datei existiert dort bereits.'); return; }
+        dst.children[key] = src.children[key];
+        delete src.children[key];
+        fsSave(fs2);
+        expRender();
+    }, 'Verschieben');
+}
+ 
+// Dialog-System
+function expShowDialog(title, bodyHTML, okFn, okLabel) {
+    document.getElementById('exp-dialog-title').innerText = title;
+    document.getElementById('exp-dialog-body').innerHTML = bodyHTML;
+    const okBtn = document.getElementById('exp-dialog-ok');
+    if (okFn) {
+        okBtn.style.display = '';
+        okBtn.innerText = okLabel || 'OK';
+        expDialogCallback = okFn;
+    } else {
+        okBtn.style.display = 'none';
+        expDialogCallback = null;
+    }
+    document.getElementById('exp-dialog-overlay').style.display = 'flex';
+}
+ 
+function expDialogClose() {
+    document.getElementById('exp-dialog-overlay').style.display = 'none';
+    expDialogCallback = null;
+}
+ 
+function expDialogOk() {
+    if (expDialogCallback) expDialogCallback();
+    expDialogClose();
+}
+ 
+// Enter im Dialog
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') expDialogClose();
+});
+ 
+// Init beim Laden
+document.addEventListener('DOMContentLoaded', () => {
+    fsInit();
+});
+ 
+// Explorer öffnen — überschreibt openWin für win-explorer
+const _origOpenWin = openWin;
+// Beim Öffnen des Explorers rendern
+document.getElementById('win-explorer')?.addEventListener('transitionend', () => {});
+// Stattdessen: beim Doppelklick auf Icon wird openWin('win-explorer') aufgerufen
+// Wir patchen das nach dem init():
+function expOpen() {
+    openWin('win-explorer');
+    fsInit();
+    expNavigate(expCurrentPath);
+}
+</script>
+</body>
+</html>
